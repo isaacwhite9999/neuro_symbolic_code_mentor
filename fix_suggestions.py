@@ -1,0 +1,3 @@
+def propose_fix(code_line: str, error_type: str) -> str:
+    # Same logic as minimal_patch_suggestion
+    ...
