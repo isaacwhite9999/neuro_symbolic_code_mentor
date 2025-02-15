@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Neuro-Symbolic Code Mentor</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        textarea { width: 100%; height: 300px; }
+        pre { background: #f0f0f0; padding: 1em; }
+    </style>
+</head>
+<body>
+    <h1>Neuro-Symbolic Code Mentor</h1>
+    <form method="post">
+        <textarea name="code_input" placeholder="Paste your Python code here...">{{ code_input }}</textarea><br><br>
+        <button type="submit">Analyze Code</button>
+    </form>
+    {% if suggestions %}
+    <h2>Suggestions:</h2>
+    <ul>
+        {% for suggestion in suggestions %}
+        <li><pre>{{ suggestion }}</pre></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+</html>
