@@ -2,51 +2,51 @@
 import argparse
 import sys
 
-# Import your existing mentor system
+# Existing Day 1 & 2 imports
 from neuro_symbolic_code_mentor.mentor import CodeMentor
 
 def print_tutorial():
     tutorial_text = """
 Interactive Tutorial for Neuro-Symbolic Code Mentor
 ----------------------------------------------------
-Step 1: Provide your Python code via a file (CLI mode) or through the web interface.
-Step 2: The tool analyzes your code using:
-    - Symbolic Pattern Matching: Flags common coding pitfalls.
-    - Neural Text Generation: Provides context-aware advice.
-    - Reinforcement Learning (optional): Adapts suggestion rankings based on your feedback.
-    - Symbolic Debugging (optional): Explains errors and proposes fixes.
-    - Code Complexity Analysis (optional): Highlights high-complexity functions.
+
+Features (Days 1–5):
+  1. Symbolic Pattern Matching (Day 1)
+  2. Neural Suggestions (Day 1, optional)
+  3. Reinforcement Learning (Day 2) - rates suggestions and prioritizes them over time
+  4. Symbolic Debugging Assistant (Day 3) - explains errors, offers minimal fixes
+  5. Code Complexity Analysis (Day 4) - calculates cyclomatic complexity of functions
+  6. Code Refactoring (Day 5) - automatically improves code structure
 
 Usage Examples:
-    Analyze a file:
-        code-mentor path/to/your_code.py
+  - Analyze a file with patterns + optional RL:
+      code-mentor path/to/your_code.py
+      code-mentor --rl path/to/your_code.py
 
-    Enable neural suggestions:
-        code-mentor --neural path/to/your_code.py
+  - Enable neural suggestions:
+      code-mentor --neural path/to/your_code.py
 
-    Enable reinforcement learning feedback:
-        code-mentor --rl path/to/your_code.py
+  - Symbolic Debugging:
+      code-mentor --debug path/to/your_code.py
+      code-mentor --interactive-debug path/to/your_code.py
 
-    Run the symbolic debugger:
-        code-mentor --debug path/to/your_code.py
+  - Complexity Analysis:
+      code-mentor --complexity path/to/your_code.py
 
-    Run the debugger with post-mortem:
-        code-mentor --interactive-debug path/to/your_code.py
+  - Code Refactoring:
+      code-mentor --refactor path/to/your_code.py
 
-    Analyze code complexity:
-        code-mentor --complexity path/to/your_code.py
+  - Web Interface:
+      code-mentor --web
 
-    Run the web interface:
-        code-mentor --web
-
-    Show this tutorial:
-        code-mentor --tutorial
+  - Show this tutorial:
+      code-mentor --tutorial
     """
     print(tutorial_text)
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Neuro-Symbolic Code Mentor: Analyze Python code with pattern matching, RL, debugging, and complexity checks."
+        description="Neuro-Symbolic Code Mentor: Analyze Python code with pattern matching, RL, debugging, complexity, and refactoring."
     )
     parser.add_argument("filepath", nargs="?", type=str, help="Path to the Python file to analyze.")
     parser.add_argument("--tutorial", action="store_true", help="Show interactive tutorial")
@@ -54,75 +54,78 @@ def main():
     parser.add_argument("--rl", action="store_true", help="Enable reinforcement learning feedback")
     parser.add_argument("--web", action="store_true", help="Run the web interface")
 
-    # NEW Day 3 flags
+    # Day 3: Debugging
     parser.add_argument("--debug", action="store_true", help="Run the symbolic debugging assistant")
     parser.add_argument("--interactive-debug", action="store_true", help="Symbolic debugger with post-mortem debugging")
 
-    # NEW Day 4 flag
+    # Day 4: Complexity
     parser.add_argument("--complexity", action="store_true", help="Analyze cyclomatic complexity of code functions")
 
+    # Day 5: Refactoring
+    parser.add_argument("--refactor", action="store_true", help="Automatically refactor code and print the new version")
+
     args = parser.parse_args()
-    
+
+    # Handle tutorial
     if args.tutorial:
         print_tutorial()
         return
-    
+
+    # Handle web interface
     if args.web:
-        # Same as before: run your Flask web app
         from neuro_symbolic_code_mentor.web_app import app
         app.run(debug=True)
         return
-    
+
+    # Ensure a filepath is provided unless tutorial/web is selected
     if not args.filepath:
         parser.print_help()
         return
 
-    # Handle complexity analysis (Day 4)
+    # Attempt to read code file
+    try:
+        with open(args.filepath, "r", encoding="utf-8") as f:
+            code = f.read()
+    except Exception as e:
+        sys.exit(f"Error reading file: {e}")
+
+    # Day 4: Complexity
     if args.complexity:
         from neuro_symbolic_code_mentor.complexity import complexity_report
-        try:
-            with open(args.filepath, "r", encoding="utf-8") as f:
-                code = f.read()
-        except Exception as e:
-            sys.exit(f"Error reading file: {e}")
-
         print("\nCode Complexity Analysis:\n")
         print(complexity_report(code))
         return
 
-    # Handle debugging (Day 3)
+    # Day 3: Debugging
     if args.debug or args.interactive_debug:
         from neuro_symbolic_code_mentor.debugger import debug_code
-        try:
-            with open(args.filepath, "r", encoding="utf-8") as f:
-                code = f.read()
-        except Exception as e:
-            sys.exit(f"Error reading file: {e}")
-
-        # If they used --interactive-debug, pass interactive=True
-        interactive_flag = args.interactive_debug
-        result = debug_code(code, interactive=interactive_flag)
+        result = debug_code(code, interactive=args.interactive_debug)
         print(result)
         return
 
-    # Otherwise, fall back to the Day 1 & Day 2 logic:
-    # Pattern matching, plus optional neural suggestions and RL feedback.
+    # Day 5: Refactoring
+    if args.refactor:
+        from neuro_symbolic_code_mentor.refactor import symbolic_refactor, neural_refactor_docstrings
 
-    try:
-        with open(args.filepath, "r", encoding="utf-8") as file:
-            code = file.read()
-    except Exception as e:
-        sys.exit(f"Error reading file: {e}")
-    
+        print("\nApplying symbolic refactoring...")
+        new_code = symbolic_refactor(code)
+
+        # Optionally chain neural docstring improvements:
+        # new_code = neural_refactor_docstrings(new_code)
+
+        print("\nRefactored Code:\n")
+        print(new_code)
+        return
+
+    # Otherwise, default to Day 1 & 2 Mentor Analysis
     mentor = CodeMentor(use_neural=args.neural, use_rl=args.rl)
-    
-    # If RL feedback is enabled, do the interactive rating:
+
+    # RL logic => interactive feedback
     if args.rl:
         raw_suggestions = mentor.analyze(code, return_raw=True)
         final_suggestions = []
         print("\nCode Mentor Suggestions:")
         for item in raw_suggestions:
-            # Process symbolic suggestions (tuple format)
             if isinstance(item, tuple) and item[0] != "neural":
                 pattern_idx, suggestion = item
                 score = mentor.rl_agent.get_weight(pattern_idx)
@@ -142,12 +145,13 @@ def main():
                 final_suggestions.append(f"{suggestion} (score: {updated_score:.2f})")
             elif isinstance(item, tuple) and item[0] == "neural":
                 final_suggestions.append(f"Neural Suggestion: {item[1]}")
-        
+
         print("\nFinal Suggestions (post-feedback):")
-        for idx, suggestion in enumerate(final_suggestions, start=1):
-            print(f"{idx}. {suggestion}")
+        for idx, sugg in enumerate(final_suggestions, start=1):
+            print(f"{idx}. {sugg}")
+
     else:
-        # RL not enabled => just do normal analysis
+        # Non-RL path => just get a list of suggestions
         suggestions = mentor.analyze(code)
         if suggestions:
             print("\nCode Mentor Suggestions:")
@@ -158,5 +162,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
